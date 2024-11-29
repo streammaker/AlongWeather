@@ -6,10 +6,14 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.liveData
 import com.example.alongweather.AlongApplication
+import com.example.alongweather.logic.dao.PlaceDao
 import com.example.alongweather.logic.model.Place
 import com.example.alongweather.logic.model.PlaceResponse
+import com.example.alongweather.logic.model.Weather
 import com.example.alongweather.logic.network.AlongWeatherNetwork
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import okhttp3.Dispatcher
 
 object Repository {
@@ -34,6 +38,42 @@ object Repository {
         }
     }
 
+    fun refershWeather(lng : String, lat : String) : LiveData<Result<Weather>> {
+        return liveData<Result<Weather>>(Dispatchers.IO) {
+            val result = try {
+                coroutineScope {
+                    val deferredRealtime = async {
+                        AlongWeatherNetwork.getRealtimeWeather(lng, lat)
+                    }
+                    val deferredDaily = async {
+                        AlongWeatherNetwork.getDailyWeather(lng, lat)
+                    }
+                    val realtimeResponse = deferredRealtime.await()
+                    val dailyResponse = deferredDaily.await()
+                    if (realtimeResponse.status == "ok" && dailyResponse.status == "ok") {
+                        val weather = Weather(realtimeResponse.result.realtime, dailyResponse.result.daily)
+                        Result.success(weather)
+                    } else {
+                        Result.failure(RuntimeException("realtimeResponse status is ${realtimeResponse.status}" +
+                        "dailyResponse status is ${dailyResponse.status}"))
+                    }
+                }
+            } catch (e : Exception) {
+                Result.failure<Weather>(e)
+            }
+            emit(result)
+        }
+    }
 
+    fun savePlace(place : Place) {
+        PlaceDao.savePlace(place)
+    }
 
+    fun getSavedPlace() : Place {
+        return PlaceDao.getSavedPlace()
+    }
+
+    fun isPlaceSaved() : Boolean {
+        return PlaceDao.isPlaceSaved()
+    }
 }

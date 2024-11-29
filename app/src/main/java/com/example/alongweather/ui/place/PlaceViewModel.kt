@@ -1,9 +1,10 @@
-package com.example.alongweather.ui
+package com.example.alongweather.ui.place
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import com.example.alongweather.logic.Repository
+import com.example.alongweather.logic.dao.PlaceDao
 import com.example.alongweather.logic.model.Place
 
 class PlaceViewModel : ViewModel() {
@@ -17,5 +18,17 @@ class PlaceViewModel : ViewModel() {
     }
     fun searchPlaces(query : String) {
         searchLiveData.value = query
+    }
+
+    fun savePlace(place : Place) {
+        Repository.savePlace(place)
+    }
+
+    fun getSavedPlace() : Place {
+        return Repository.getSavedPlace()
+    }
+
+    fun isPlaceSaved() : Boolean {
+        return Repository.isPlaceSaved()
     }
 }

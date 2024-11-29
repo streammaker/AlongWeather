@@ -1,6 +1,8 @@
 package com.example.alongweather.logic.network
 
+import com.example.alongweather.logic.model.DailyResponse
 import com.example.alongweather.logic.model.PlaceResponse
+import com.example.alongweather.logic.model.RealtimeResponse
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -12,8 +14,18 @@ object AlongWeatherNetwork {
 
     private val placeService = ServiceCreator.create<PlaceService>()
 
+    private val weatherService = ServiceCreator.create<WeatherService>()
+
     suspend fun searchPlaces(query : String) : PlaceResponse {
         return placeService.searchPlaces(query).await()
+    }
+
+    suspend fun getRealtimeWeather(lng : String, lat : String) : RealtimeResponse {
+        return weatherService.getRealtimeWeather(lng, lat).await()
+    }
+
+    suspend fun getDailyWeather(lng : String, lat : String) : DailyResponse {
+        return weatherService.getDailyWeather(lng, lat).await()
     }
 
     private suspend fun<T> Call<T>.await() : T {
